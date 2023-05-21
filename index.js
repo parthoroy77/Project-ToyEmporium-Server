@@ -25,21 +25,23 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
 
     const toysCollection = client.db("toysDB").collection("toysCollection");
-    
+
     const indexKeys = { toyName: 1 };
-    const indexOption = { name: 'toySearch' };
-    const indexCreate = toysCollection.createIndex(indexKeys, indexOption)
+    const indexOption = { name: "toySearch" };
+    const indexCreate = toysCollection.createIndex(indexKeys, indexOption);
     app.get("/allToys", async (req, res) => {
-      const result = await toysCollection.find().toArray();
+      const result = await toysCollection.find().limit(20).toArray();
       res.send(result);
     });
-    app.get('/searchByName/:text', async (req, res) => {
+    app.get("/searchByName/:text", async (req, res) => {
       const text = req.params.text;
-      const result = await toysCollection.find({
-        $or: [{toyName: {$regex: text, $options: 'i'}}]
-      }).toArray()
-      res.send(result)
-    })
+      const result = await toysCollection
+        .find({
+          $or: [{ toyName: { $regex: text, $options: "i" } }],
+        })
+        .toArray();
+      res.send(result);
+    });
     app.get("/subCategory/:category", async (req, res) => {
       const result = await toysCollection
         .find({ subCategory: req.params.category })
