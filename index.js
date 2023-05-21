@@ -1,16 +1,13 @@
-const express = require('express');
-const cors = require('cors');
+const express = require("express");
+const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
-require('dotenv').config()
+require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 5000;
 
 // middleware
-app.use(cors())
-app.use(express.json())
-
-
-
+app.use(cors());
+app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.SERVER_SECRET_USER}:${process.env.SERVER_SECRET_PASS}@cluster0.h0arnkr.mongodb.net/?retryWrites=true&w=majority`;
 
@@ -26,27 +23,48 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-      await client.connect();
-      
-      const toysCollection = client.db('toysDB').collection('toysCollection');
+    await client.connect();
 
-      app.get('/allToys', async (req, res) => {
-          const result = await toysCollection.find().limit(20).toArray();
-          res.send(result);
-      })
+    const toysCollection = client.db("toysDB").collection("toysCollection");
 
-      app.get('/subCategory/:category', async (req, res) => {
-          const result = await toysCollection.find({ subCategory: req.params.category }).toArray();
-          res.send(result)
-      })
+    app.get("/allToys", async (req, res) => {
+      const result = await toysCollection.find().toArray();
+      res.send(result);
+    });
 
-      app.get('/details/:id', async (req, res) => {
-          const id = req.params.id;
-          const filter = { _id: new ObjectId(id) };
-          const result = await toysCollection.findOne(filter);
-          res.send(result)
-      })
+    app.get("/subCategory/:category", async (req, res) => {
+      const result = await toysCollection
+        .find({ subCategory: req.params.category })
+        .toArray();
+      res.send(result);
+    });
 
+    app.get("/details/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const result = await toysCollection.findOne(filter);
+      res.send(result);
+    });
+    app.get('/myToys', async (req, res) => {
+      let query = {};
+      if (req.query.email) {
+        query = {sellerEmail: req.query.email}
+      }
+      const result = await toysCollection.find(query).toArray()
+      res.send(result)
+    })
+
+    app.post('/addToys', async (req, res) => {
+      const addToys = req.body;
+      const result = await toysCollection.insertOne(addToys);
+      res.send(result)
+    })
+    app.delete('/deleteToy/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const result = await toysCollection.deleteOne(filter);
+      res.send(result)
+    })
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
@@ -59,13 +77,10 @@ async function run() {
 }
 run().catch(console.dir);
 
-
-
-
-app.get('/', (req, res) => {
-    res.send('Toy Emporium Server Running');
-})
+app.get("/", (req, res) => {
+  res.send("Toy Emporium Server Running");
+});
 
 app.listen(port, () => {
-    console.log(port);
-})
+  console.log(port);
+});
