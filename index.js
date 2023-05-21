@@ -31,7 +31,12 @@ async function run() {
       const toysCollection = client.db('toysDB').collection('toysCollection');
 
       app.get('/allToys', async (req, res) => {
-          const result = await toysCollection.find().toArray();
+          const result = await toysCollection.find().limit(20).toArray();
+          res.send(result);
+      })
+
+      app.get('/subCategory/:category', async (req, res) => {
+          const result = await toysCollection.find({ subCategory: req.params.category }).toArray();
           res.send(result)
       })
 
